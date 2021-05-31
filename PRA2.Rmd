@@ -1,0 +1,22 @@
+---
+title: 'Tipología y ciclo de vida de los datos: Práctica 2'
+author: "Autor: Nombre estudiante"
+date: "junio 2021"
+output:
+  html_document:
+    highlight: default
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+    includes:
+      in_header: PRA2-header.html
+  pdf_document:
+    highlight: zenburn
+    toc: yes
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
