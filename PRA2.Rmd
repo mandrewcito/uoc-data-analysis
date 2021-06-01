@@ -19,6 +19,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
 ```
 
 
@@ -85,5 +86,71 @@ Los datos de interés de ese cojunto de datos serán los que nos aporten algo de
 cols_remove <- c("PassengerId", "Name", "Ticket")
 titanicData <- titanicData[, !(colnames(titanicData) %in% cols_remove)]
 ```
+
+# Limpieza de los datos.
+
+## ¿Los datos contienen ceros o elementos vacíos? ¿Cómo gestionarías cada uno de estos casos?
+
+Para comprobar si los datos contienen elementos vacíos se ejecuta la siguiente sentencia.
+
+```{r}
+colSums(is.na(titanicData))
+```
+
+Se puede observar que la columna Age contiene 177 valores nulos. Existen diferentes políticas para el tratamiento de los valores nulos:
+
+* **Eliminarlos**: En Ocasiones, compensa eliminar estas filas, ya que pueden generar distorsiones a la hora de hacer cálculos con las columnas que contienen los valores nulos.
+
+* **Reemplazo**: Se podrían reemplazar los valores por la media, la mediana o la moda. Estas medidas se pueden intentar particular en función de otras columnas para que no siempre sean los mismos para todas las entradas nulas.
+
+* **Asignación de una categoría**: Si se discretizan los datos en, por ejemplo, rangos de edad, se puede particularizar todos los valores nulos en una categoría especial llamada "edad desconocida".
+
+* **Predicción de los valores nulos**: Por último, se pueden inferir los valores mediante predicciones.
+
+En este caso, se van a inferir los valores en función de otros parámentros. Para hacer esto, partimos de que es muy probable que la edad media de las personas que viajan en Pclass3 es diferente a la edad media de las personas que viajan en Pclass1. Además, esa edad será diferente en función de si estamos ante un hombre o una mujer. Por tanto, para inferir los valores de edad perdidos, se agrupa por Sex y Pclass, para posteriormente calcular las medianas de cada serie agrupada.
+
+Primero, se calcula la media y la mediana de edad en función de la clase y el género del pasajero. 
+```{r, message = FALSE}
+by_sex_class <- titanicData %>% group_by(Sex, Pclass)  %>% summarise(mean = mean(Age, na.rm = TRUE), median = median(Age, na.rm = TRUE))
+                      
+by_sex_class
+
+
+```
+
+Se observa que la media y la mediana de edad varía en función del género y la clase en la que viajaban. Se procede a rellenar los valores nulos en la columna de edad por los valores de mediana en función de Sex y Pclass.  
+
+```{r}
+titanicData$Age[titanicData$Sex == "female" & titanicData$Pclass == "1" & is.na(titanicData$Age)] <- by_sex_class$median[by_sex_class$Sex == "female" & by_sex_class$Pclass == "1"]
+
+titanicData$Age[titanicData$Sex == "female" & titanicData$Pclass == "2" & is.na(titanicData$Age)] <- by_sex_class$median[by_sex_class$Sex == "female" & by_sex_class$Pclass == "2"]
+
+titanicData$Age[titanicData$Sex == "female" & titanicData$Pclass == "3" & is.na(titanicData$Age)] <- by_sex_class$median[by_sex_class$Sex == "female" & by_sex_class$Pclass == "3"]
+
+titanicData$Age[titanicData$Sex == "male" & titanicData$Pclass == "1" & is.na(titanicData$Age)] <- by_sex_class$median[by_sex_class$Sex == "male" & by_sex_class$Pclass == "1"]
+
+titanicData$Age[titanicData$Sex == "male" & titanicData$Pclass == "2" & is.na(titanicData$Age)] <- by_sex_class$median[by_sex_class$Sex == "male" & by_sex_class$Pclass == "2"]
+
+titanicData$Age[titanicData$Sex == "male" & titanicData$Pclass == "3" & is.na(titanicData$Age)] <- by_sex_class$median[by_sex_class$Sex == "male" & by_sex_class$Pclass == "3"]
+
+```
+
+Se vuelve a comprobar si existen valores nulos.
+
+```{r}
+colSums(is.na(titanicData))
+```
+
+Se han eliminado los valores nulos. Ahora, se comprueba que el summary no difiere mucho del original.
+
+```{r}
+summary(titanicData)
+```
+
+La media de edad ha bajado ligeramente, pero en general los datos se mantienen estables aún habiendo inferido 177 entradas.
+
+
+
+
 
 
