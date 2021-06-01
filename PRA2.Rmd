@@ -20,3 +20,70 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+
+# Descripción del dataset
+
+El conjunto de datos del titanic es ampliamente concido en la comunidad del ML. Es más, forma parte de los retos de iniciación en la plataforma [kaggle](https://www.kaggle.com/c/titanic/overview).
+
+Este conjunto de datos, es la representación de las personas que embarcaron en el titanic. En el, se recogen multitud de datos sobre cada persona, relativos a su edad, pais y clase en la que embarcaron, además de si sobrevivieron o no.
+
+
+## ¿Por qué es importante?
+
+Este cojunto de datos tiene la posibilidad de explicar algunos datos de la catastrofe. Puede aclarar si hubo algún condicionante para la muerte o supervivencia de las personas más allá del puro azar.
+
+## ¿Qué pregunta pretende responder?
+
+Este cojunto de datos pretende elaborar un modelo predictivo y con el responder a la pregunta: ¿Qué tipo de personas tenían más probabilidades de sobrevivir?
+
+# Integración de los datos de interés a analizar
+
+Antes de integrar, vamos a describir las variables que caracterízan a estos datos:
+
+* **PassengerId** Id del pasajero
+
+* **Name** Nombre del pasajero en formato cadena.
+
+* **Sex** Factor con los niveles male/female.
+
+* **Age** Valor numérico con la edad, los niños menores a un año vienen especificados en fracción.
+
+* **Pclass** Factor con la clase de pasajero/personal.
+
+* **Embarked** Factor con el emarque de la persona.
+
+* **Cabin** Factor con el camarote
+
+* **Ticket** billete de cada persona (NA para la tripulación).
+
+* **Fare** Valor numérico con el precio del ticket (NA  para miembros de la tripulación musicos y empleados de la compañia).
+
+* **SibSp** Factor con el número de conyuges fuera (adaptado del conjunto de datos de vanderbild).
+
+* **Parch** Factor con el número de padres, hijos a bordo( importado del conjunto de datos de vanderbild).
+
+* **Survived** Factor con dos niveles indicando si sobrevivió o no.
+
+Escogemos las columnas que serán factores:
+```{r}
+factors = c("Sex"="factor","Pclass"="factor","Cabin"="factor", "Embarked"="factor","SibSp"="factor","Parch"="factor","Survived"="factor");
+```
+
+Cargamos los datos:
+
+```{r}
+titanicData <- read.csv('titanic.csv', stringsAsFactors = FALSE, colClasses = factors );
+```
+
+```{r}
+summary(titanicData);
+```
+Los datos de interés de ese cojunto de datos serán los que nos aporten algo de información sobre las personas pero a nivel de cojunto, es decir datos como nombre, identificador de pasajero o número de ticket no nos resultan de utilidad. Por lo que podemos crear un conjunto de datos solamente con los datos adecuados:
+
+```{r}
+cols_remove <- c("PassengerId", "Name", "Ticket")
+titanicData <- titanicData[, !(colnames(titanicData) %in% cols_remove)]
+```
+
+
