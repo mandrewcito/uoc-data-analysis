@@ -253,6 +253,7 @@ titanicData.firstClass <- titanicData[titanicData$Pclass == "3",]
 titanicData.female <- titanicData[titanicData$Sex == "female",]
 titanicData.male <- titanicData[titanicData$Sex == "male",]
 ```
+
 Vamos a mostrar con gráficas cada uno de los grupos nombrados junto con la supervivencia.
 
 ### Rango de edad
@@ -270,6 +271,7 @@ Con este último gráfico, podemos deducir que los niños tuvieron más posibili
 ```{r}
 ggplot(data=titanicData[1:nrow(titanicData),],aes(x=Pclass,fill=Survived))+geom_bar()
 ```
+También se aprecia un aumento de la supervivencia en las clases 1 y 2 con respecto a la 3.
 
 ### Sexo
 
@@ -303,21 +305,50 @@ col.names = colnames(titanicData)
 
 ### Homogeneidad de la varianza.
 
-Pasamos a estudiar la homogenidad de la varianza mediante la aplicación del test de *Fligner-Killeen*. La estudiaremos para los grupos anteriores.
+Pasamos a estudiar la homogenidad de la varianza mediante la aplicación del test de *Fligner-Killeen*. Ya que es una alternativa cuando no se cumple la normalidad de las muestras
 
 ```{r}
-fligner.test(SibSp ~ Fare, data = titanicData)
+#fligner.test
 ```
 
 ## Aplicación de pruebas estadísticas
 
+### Correlaciones 
+
 ¿ Qué variables influyen en la supervivencia? En este apartado comprobaremos las correlaciones entre distintas variables y su influencia en la supervivencia.
 
-### Prueba 1: 
+```{r}
+corr_matrix <- matrix(nc = 2, nr = 0)
+colnames(corr_matrix) <- c("estimate", "p-value")
 
-### Prueba 2: 
+# con respecto al campo "survive"
+for (i in 1:(ncol(titanicData) - 1)) {
+  if (is.integer(titanicData[,i]) | is.numeric(titanicData[,i])) {
+    spearman_test = cor.test(
+        as.double(titanicData[,i]),
+        as.integer(titanicData$Survived),
+        method = "spearman", exact = FALSE)
+    
+  corr_coef = spearman_test$estimate
+  p_val = spearman_test$p.value
+  
+    pair = matrix(ncol = 2, nrow = 1)
+    pair[1][1] = corr_coef
+    pair[2][1] = p_val
+    corr_matrix <- rbind(corr_matrix, pair)
+  rownames(corr_matrix)[nrow(corr_matrix)] <- colnames(titanicData)[i]
+  }
+} 
+print(corr_matrix)
+```
+Al no estar en valores cercanos a uno, tanto negativo como positivo. No hay ninguna variable numérica correlacionada con la supervivencia. La más fuerte sería la del precio del billete, pero no es suficiente.
 
-### Prueba 3: 
+### Contraste de hipótesis: 
+
+
+```{r}
+```
+### Regresión logística: 
 
 # Representación de los resultados
 
