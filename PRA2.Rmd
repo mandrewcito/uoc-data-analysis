@@ -25,6 +25,7 @@ if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
 # https://cran.r-project.org/web/packages/dplyr/index.html
 if (!require('dplyr')) install.packages('dplyr'); library('dplyr')
 library(plotly)
+library(nortest)
 ```
 
 
@@ -71,7 +72,7 @@ Antes de integrar, vamos a describir las variables que caracterízan a estos dat
 
 Escogemos las columnas que serán factores:
 ```{r}
-factors = c("Sex"="factor","Pclass"="factor","Cabin"="factor", "Embarked"="factor","SibSp"="factor","Parch"="factor","Survived"="factor");
+factors = c("Sex"="factor","Pclass"="factor","Cabin"="factor", "Embarked"="factor","Survived"="factor");
 ```
 
 Cargamos los datos:
@@ -262,7 +263,38 @@ ggplot(data=titanicData[1:nrow(titanicData),],aes(x=Sex,fill=Survived))+geom_bar
 
 ## Comprobación de normalidad y homogeneidad de la varianza.
 
+
+### Comprobación de normalidad
+
+Para comprobar la normalidad se va a utilizar la prueba de la normalidad de *Anderson Darling*, se comprueba que el p-valor sea superior a 0.05.
+
+```{r}
+alpha = 0.05
+col.names = colnames(titanicData)
+  for (i in 1:ncol(titanicData)) {
+    if (i == 1) cat("Variables que no siguen una distribución normal:\n")
+    if (is.integer(titanicData[,i]) | is.numeric(titanicData[,i])) {
+    p_val = ad.test(titanicData[,i])$p.value
+    if (p_val < alpha) {
+      cat(col.names[i])
+      # Format output
+      if (i < ncol(titanicData) - 1) cat(", ")
+      if (i %% 3 == 0) cat("\n")
+    }
+  }
+}
+```
+### Homogeneidad de la varianza.
+
+Pasamos a estudiar la homogenidad de la varianza mediante la aplicación del test de *Fligner-Killeen*. La estudiaremos para los grupos anteriores.
+
+```{r}
+fligner.test(SibSp ~ Fare, data = titanicData)
+```
+
 ## Aplicación de pruebas estadísticas
+
+¿ Qué variables influyen en la supervivencia? En este apartado comprobaremos las correlaciones entre distintas variables y su influencia en la supervivencia.
 
 ### Prueba 1: 
 
