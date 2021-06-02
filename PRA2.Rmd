@@ -20,6 +20,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
+library(plotly)
 ```
 
 
@@ -110,7 +111,7 @@ Se puede observar que la columna Age contiene 177 valores nulos. Existen diferen
 En este caso, se van a inferir los valores en función de otros parámentros. Para hacer esto, partimos de que es muy probable que la edad media de las personas que viajan en Pclass3 es diferente a la edad media de las personas que viajan en Pclass1. Además, esa edad será diferente en función de si estamos ante un hombre o una mujer. Por tanto, para inferir los valores de edad perdidos, se agrupa por Sex y Pclass, para posteriormente calcular las medianas de cada serie agrupada.
 
 Primero, se calcula la media y la mediana de edad en función de la clase y el género del pasajero. 
-```{r, message = FALSE}
+```{r, warning= FALSE, message = FALSE}
 by_sex_class <- titanicData %>% group_by(Sex, Pclass)  %>% summarise(mean = mean(Age, na.rm = TRUE), median = median(Age, na.rm = TRUE))
                       
 by_sex_class
@@ -149,7 +150,72 @@ summary(titanicData)
 
 La media de edad ha bajado ligeramente, pero en general los datos se mantienen estables aún habiendo inferido 177 entradas.
 
+En el summary se pueden observar diferentes columnas con datos anómalos o vacíos. Se procede a analizar uno a uno cada caso.
 
+La columna SibSp contiene muchos valores a 0. En esta columna este valor es perfectamente normal, ya que indica el número de hermanos o esposas a bordo del barco para cada persona.
+
+La columna Parch también contienen valores a 0, pero también cuadra, ya que este campo indica el núero de padres o hijos a bordo.
+
+La columna Fare indica el precio que el pasajero pagó para estar en el barco. El mínimno de esta columna es 0, lo cual no tendría demasiado sentido. Se procede a mirar cuántas entradas tienen 0 en el precio.
+
+```{r}
+filter(titanicData, Fare == 0)
+```
+
+Es destacable que todas aquellas entradas que tienen Fare = 0 son de hombres. Dado que no han pagado nada, estas personas podrían ser tripulación del barco, por lo que se mantienen estas entradas.
+
+La columna Cabin contiene muchísimos valores nulos, y no se puede inferir de ninguna manera. Tampoco parece que aporte demasiada información útil, por lo que se desecha.
+
+```{r}
+titanicData <- subset(titanicData, select = -c(Cabin))
+```
+
+Por último, la columna Embarked contiene dos valores nulos que sí serían interesantes de completar. En este caso, para evitar tener 4 categorías y que se distorsionen un poco esos datos, se imputan estos dos valores con la moda, es decir, con el valor "S".
+
+```{r}
+titanicData$Embarked[titanicData$Embarked == ""] <- "S"
+
+# Se elimina la clase sobrante.
+
+titanicData$Embarked <- as.factor(as.character(titanicData$Embarked))
+
+```
+
+Se hace un último summary para comprobar que todo ha quedado correctamente.
+
+```{r}
+summary(titanicData)
+```
+
+
+## Identificación y tratamiento de valores extremos.
+
+La mejor manera de tratar los valores extremos es ir mostrando los diferentes valores de columnas numéricas en un diagrama de cajas y bigotes o *boxplot*. Para la realización de estos diagramas se ha utilizado la librería Plotly.
+
+```{r, message = FALSE, warning= FALSE}
+fig <- plot_ly(y = titanicData$Age, type = "box", name = "Edad")
+
+fig
+```
+
+Aunque vemos unos cuantos outliers en el campo Edad, son perfectamente normales.
+
+Veamos la columna Fare.
+
+```{r}
+fig <- plot_ly(y = titanicData$Fare, type = "box", name = "Precio del Ticket")
+
+fig
+```
+
+Se observan bastantes outliers, pero hay un precio que destaca más que los demás. Vamos a analizar esas filas.
+
+```{r}
+filter(titanicData, Fare > 500)
+
+```
+
+Las tres filas pertenecen a personas del mismo rango de edad que embarcaron desde el mismo puerto. Por la exactitud de los datos y su homogeneidad, parecen datos correctos, por lo que se mantienen en el dataset.
 
 
 
