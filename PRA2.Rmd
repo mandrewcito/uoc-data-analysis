@@ -1,7 +1,7 @@
 ---
 title: 'Tipología y ciclo de vida de los datos: Práctica 2'
 author: "Autor: Nombre estudiante"
-date: "junio 2021"
+date: '`r format(Sys.Date(),"%e de %B %Y")`'
 output:
   html_document:
     highlight: default
