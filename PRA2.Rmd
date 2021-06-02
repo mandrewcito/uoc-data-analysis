@@ -81,9 +81,11 @@ summary(titanicData);
 ```
 Los datos de interés de ese cojunto de datos serán los que nos aporten algo de información sobre las personas pero a nivel de cojunto, es decir datos como nombre, identificador de pasajero o número de ticket no nos resultan de utilidad. Por lo que podemos crear un conjunto de datos solamente con los datos adecuados:
 
+
 ```{r}
 cols_remove <- c("PassengerId", "Name", "Ticket")
 titanicData <- titanicData[, !(colnames(titanicData) %in% cols_remove)]
+summary(titanicData);
 ```
 
 
