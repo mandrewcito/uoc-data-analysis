@@ -538,3 +538,12 @@ Con los modelos elaborados (regresión, contraste de hipótesis y correlaciones)
 * Age
 * PClass
 
+
+# Contribuciones
+
+| Contribuciones  | Firma  |
+|---|---|
+|Investigación previa | David Herrero Pascual, Andrés Baamonde Lozano  |
+|Redacción de las respuestas | David Herrero Pascual, Andrés Baamonde Lozano  |
+|Desarrollo y código | David Herrero Pascual, Andrés Baamonde Lozano  |
+
