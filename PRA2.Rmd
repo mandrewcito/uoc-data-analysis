@@ -26,6 +26,8 @@ if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
 if (!require('dplyr')) install.packages('dplyr'); library('dplyr')
 library(plotly)
 library(nortest)
+library(graphics)
+library(prediction)
 ```
 
 
@@ -308,8 +310,18 @@ col.names = colnames(titanicData)
 Pasamos a estudiar la homogenidad de la varianza mediante la aplicación del test de *Fligner-Killeen*. Ya que es una alternativa cuando no se cumple la normalidad de las muestras
 
 ```{r}
-#fligner.test
+fligner.test(as.integer(titanicData$Sex), as.integer(titanicData$Survived))
 ```
+
+```{r}
+fligner.test(as.integer(titanicData$Pclass), as.integer(titanicData$Survived))
+```
+
+```{r}
+fligner.test(as.integer(titanicData$Age), as.integer(titanicData$Survived))
+```
+
+En ningún caso obtenemos un p valor mayor a 0.05 por loque no aceptamos la hipótesis de que la varianza de ambas muestras es homogénea.
 
 ## Aplicación de pruebas estadísticas
 
@@ -322,8 +334,7 @@ corr_matrix <- matrix(nc = 2, nr = 0)
 colnames(corr_matrix) <- c("estimate", "p-value")
 
 # con respecto al campo "survive"
-for (i in 1:(ncol(titanicData) - 1)) {
-  if (is.integer(titanicData[,i]) | is.numeric(titanicData[,i])) {
+for (i in c("Age", "Sex","Pclass")) {
     spearman_test = cor.test(
         as.double(titanicData[,i]),
         as.integer(titanicData$Survived),
@@ -336,19 +347,30 @@ for (i in 1:(ncol(titanicData) - 1)) {
     pair[1][1] = corr_coef
     pair[2][1] = p_val
     corr_matrix <- rbind(corr_matrix, pair)
-  rownames(corr_matrix)[nrow(corr_matrix)] <- colnames(titanicData)[i]
-  }
+  rownames(corr_matrix)[nrow(corr_matrix)] <- i
 } 
 print(corr_matrix)
 ```
-Al no estar en valores cercanos a uno, tanto negativo como positivo. No hay ninguna variable numérica correlacionada con la supervivencia. La más fuerte sería la del precio del billete, pero no es suficiente.
+La menos correlacionada quizá sería la edad y la más fuertemente correlacionada la edad.
 
 ### Contraste de hipótesis: 
 
+### Regresión logística:
 
 ```{r}
+model <- glm(formula = as.factor(Survived) ~ Sex , family = "binomial", data= titanicData);
+summary(model)
 ```
-### Regresión logística: 
+
+```{r}
+model <- glm(formula = as.factor(Survived) ~ Sex + Age , family = "binomial", data= titanicData);
+summary(model)
+```
+
+```{r}
+model <- glm(formula = as.factor(Survived) ~ Sex + Age + Pclass, family = "binomial", data= titanicData);
+summary(model)
+```
 
 # Representación de los resultados
 
