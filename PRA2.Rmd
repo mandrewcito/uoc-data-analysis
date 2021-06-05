@@ -28,6 +28,7 @@ library(plotly)
 library(nortest)
 library(graphics)
 library(prediction)
+library(MVN)
 ```
 
 
@@ -283,26 +284,59 @@ ggplot(data=titanicData[1:nrow(titanicData),],aes(x=Sex,fill=Survived))+geom_bar
 
 ## Comprobación de normalidad y homogeneidad de la varianza.
 
+## Comprobación de normalidad y homogeneidad de la varianza.
+
+```{r}
+summary(titanicData)
+```
+
 
 ### Comprobación de normalidad
 
-Para comprobar la normalidad se va a utilizar la prueba de la normalidad de *Anderson Darling*, se comprueba que el p-valor sea superior a 0.05.
+Se procede a comprobar la normalidad de las variables numéricas, es decir, Age, SibSp, Parch, y Fare. Para ello, se crearán histogramas univariados y QQ-plots, que permiten a los analistas de datos identificar datos sesgados hacia los lados y ver la normalidad de las variables. Se utiliza la librería MVN. El test aplicado es el Royston, 
 
 ```{r}
-alpha = 0.05
-col.names = colnames(titanicData)
-  for (i in 1:ncol(titanicData)) {
-    if (i == 1) cat("Variables que no siguen una distribución normal:\n")
-    if (is.integer(titanicData[,i]) | is.numeric(titanicData[,i])) {
-    p_val = ad.test(titanicData[,i])$p.value
-    if (p_val < alpha) {
-      cat(col.names[i])
-      # Format output
-      if (i < ncol(titanicData) - 1) cat(", ")
-      if (i %% 3 == 0) cat("\n")
-    }
-  }
-}
+titanicData_numeric<- titanicData %>% select_if(is.numeric)
+
+result<- mvn(data=titanicData_numeric, mvnTest="royston", univariatePlot="histogram")
+```
+
+En los histogramas se observa claramente que las variables SibSp, Parch y Fare están sesgadas hacia la izquierda y no siguen una distribución normal. 
+
+Sin embargo, la variable Age sí sigue aproximadamente una distribución Normal. Se procede a representar los QQ-Plots para corroborar esta suposición.
+
+```{r}
+result<-mvn(data=titanicData_numeric, mvnTest = "royston", univariatePlot = "qqplot")
+```
+
+De nuevo, se observa que Age sí sigue aproximadamente una distribución normal. 
+
+Para contrastar la normalidad de esta variable, se aplica también el Test Shapiro-Wilk. Este test toma las siguientes hipótesis:
+
+* **Hipótesis nula**: Los datos de la muestra no son significativamente diferentes de una población normal.
+* **Hipótesis alternativa**: Los datos de la muestra son significativamente diferentes de una población normal.
+
+Para todo valor de probabilidad mayor que el nivel de significación, en este caso 0.05, se acepta la hipótesis nula y se rechaza la alternativa.
+
+```{r}
+shapiro.test(titanicData$Age)
+```
+
+Dado que el p-valor es menor que 0.05, se rechaza la hipótesis nula, por lo que la varaible Age no sigue una distribución normal.
+
+Se realiza el mismo test para las otras 3 variables, con idéntico resultado.
+
+```{r}
+shapiro.test(titanicData$SibSp)
+```
+
+```{r}
+shapiro.test(titanicData$Parch)
+```
+
+
+```{r}
+shapiro.test(titanicData$Fare)
 ```
 
 ### Homogeneidad de la varianza.
@@ -317,11 +351,34 @@ fligner.test(as.integer(titanicData$Sex), as.integer(titanicData$Survived))
 fligner.test(as.integer(titanicData$Pclass), as.integer(titanicData$Survived))
 ```
 
+Debido a que 3 de las 4 variables no siguen una distribución normal, se debe utilizar un test que permita obtener la homogeneidad en variables no normales. Por eso, hemos decidido utilizar en test Fligner-Killeen, un test no paramétrico que compara las varianzas basándose en la mediana.
+
+Este test toma como premisas las siguientes hipótesis:
+
+* **Hipótesis nula**: Todas las varianzas de las poblaciones son iguales.
+* **Hipótesis alternativa**: Al menos dos de ellas difieren.
+
+Primero, se aplica el test a todas las variables a la vez.
+
 ```{r}
-fligner.test(as.integer(titanicData$Age), as.integer(titanicData$Survived))
+fligner.test(x = titanicData_numeric)
 ```
 
-En ningún caso obtenemos un p valor mayor a 0.05 por loque no aceptamos la hipótesis de que la varianza de ambas muestras es homogénea.
+Dado que el p-valor es inferior a 0.05, concluimos que tomando todas las variables al mismo tiempo no todas las varianzas son homogéneas. Se procede ahora a comprobar las variables 2 a 2.
+
+#### Homogeneidad de varianza entre Age y Survived.
+
+Se mirará la homogeneidad de la varianza de la variable Age en función de la Supervivencia. Primero, se representa ambas varianzas en un boxplot para hacernos una idea de si podría existir homogeneidad.
+
+```{r}
+boxplot(Age ~ Survived, data = titanicData)
+```
+
+Parece que podría cumplirse la homogeneidad. Se procede a ejecutar el test.
+
+```{r}
+fligner.test(Age ~ Survived, data = titanicData)
+```
 
 ## Aplicación de pruebas estadísticas
 
@@ -351,9 +408,35 @@ for (i in c("Age", "Sex","Pclass")) {
 } 
 print(corr_matrix)
 ```
+
 La menos correlacionada quizá sería la edad y la más fuertemente correlacionada la edad.
 
 ### Contraste de hipótesis: 
+
+#### Dependencia entre pclass y survived
+
+En primer lugar, se comprobará si las diferentes clases en las que viajaban los pasajeros influyó en si sobrevivieron al accidente o no. Por tanto, se identifican las siguientes hipótesis:
+
+* Hipótesis nula: El factor PClass y el el factor Survived son independientes.
+* Hipótesis alternativa: Los dos factores son dependientes.
+
+Para comprobar la dependencia entre dos variables categóricas, se aplica el test chi-cuadrado. Primero, se genera una tabla de contingencia entre ambos factores.
+
+
+```{r}
+contingece <- table(titanicData$Survived, titanicData$Pclass)
+contingece
+```
+
+Una vez creada la tabla, se aplica el test.
+
+```{r}
+chisq.test(contingece)
+```
+
+Dado que el p-valor es inferior a 0.05, se rechaza la hipótesis nula, y aceptamos la hipótesis alternativa.
+
+Es decir, el test determina que la clase de los pasajeros es determinante a la hora de predecir si sobrevivió o no.
 
 ### Regresión logística:
 
