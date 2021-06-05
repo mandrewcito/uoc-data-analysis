@@ -491,23 +491,50 @@ Es decir, el test determina que el sexo de los pasajeros es determinante a la ho
 ### Regresión logística:
 
 ```{r}
-model <- glm(formula = as.factor(Survived) ~ Sex , family = "binomial", data= titanicData);
-summary(model)
+model1 <- glm(formula = as.factor(Survived) ~ Sex , family = "binomial", data= titanicData);
+summary(model1)
 ```
 
 ```{r}
-model <- glm(formula = as.factor(Survived) ~ Sex + Age , family = "binomial", data= titanicData);
-summary(model)
+model2 <- glm(formula = as.factor(Survived) ~ Sex + Age , family = "binomial", data= titanicData);
+summary(model2)
 ```
 
 ```{r}
-model <- glm(formula = as.factor(Survived) ~ Sex + Age + Pclass, family = "binomial", data= titanicData);
-summary(model)
+model3 <- glm(formula = as.factor(Survived) ~ Sex + Age + Pclass, family = "binomial", data= titanicData);
+summary(model3)
+```
+
+Obtenemos una tabla para comparar los modelos generados:
+```{r}
+tabla.coeficientes <- matrix(c(1, summary(model1)$aic,
+    2, summary(model2)$aic,
+    3, summary(model3)$aic),
+    ncol = 2, byrow = TRUE)
+colnames(tabla.coeficientes) <- c("Modelo", "AIC")
 ```
 
 # Representación de los resultados
 
-# Resolución del problema
+A lo largo de los apartados hemos explicado y aportado gráficas de los resultados obtenidos. Ahora vamos a hacer un pequeño resumen. Como se puede ver en la matriz de correlaciones, Age y Sex están correlacionados con la supervivencia.
 
-## Conclusiones
+```{r}
+print(corr_matrix)
+```
+
+Mediante el contraste de hipótesis hemos obtenido que Survived tiene dependencias con las tres variables estudiadas (ver apartado Contraste de hipótesis 4.3.X).
+
+Mediante las regresiones logísticas hemos utilizado estas variables para elborar modelos más complejos(el último con las 3 variables) sus resultados son los siguientes:
+
+```{r}
+tabla.coeficientes
+```
+
+# Resolución del problema y conclusiones
+
+Con los modelos elaborados (regresión, contraste de hipótesis y correlaciones) llegamos a la conclusión de que todas las variables influyen en la supervivencia de los individuos. El orden de influencia sería el siguiente:
+
+* Sex
+* Age
+* PClass
 
