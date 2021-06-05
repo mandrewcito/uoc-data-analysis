@@ -1,4 +1,3 @@
-
 ---
 title: "UOC Práctica 2: Limpieza y validación de los datos"
 author: "Andrés Baamonde Lozano, David Herrero Pascual"
