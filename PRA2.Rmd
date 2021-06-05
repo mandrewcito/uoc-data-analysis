@@ -413,7 +413,7 @@ La menos correlacionada quizá sería la edad y la más fuertemente correlaciona
 
 ### Contraste de hipótesis: 
 
-#### Dependencia entre pclass y survived
+#### Dependencia entre Pclass y Survived
 
 En primer lugar, se comprobará si las diferentes clases en las que viajaban los pasajeros influyó en si sobrevivieron al accidente o no. Por tanto, se identifican las siguientes hipótesis:
 
@@ -437,6 +437,56 @@ chisq.test(contingece)
 Dado que el p-valor es inferior a 0.05, se rechaza la hipótesis nula, y aceptamos la hipótesis alternativa.
 
 Es decir, el test determina que la clase de los pasajeros es determinante a la hora de predecir si sobrevivió o no.
+
+#### Dependencia entre AgeGroup y Survived
+
+A continuación, se comprobará si la edad de los pasajeros influyó en si sobrevivieron al accidente o no. Por tanto, se identifican las siguientes hipótesis:
+
+* Hipótesis nula: El factor Age y el el factor Survived son independientes.
+* Hipótesis alternativa: Los dos factores son dependientes.
+
+Para comprobar la dependencia entre dos variables categóricas, se aplica el test chi-cuadrado. Primero, se genera una tabla de contingencia entre ambos factores. Se utilizará los grupos de edad.
+
+
+```{r}
+contingece <- table(titanicData$Survived, titanicData$AgeGroup)
+contingece
+```
+
+Una vez creada la tabla, se aplica el test.
+
+```{r}
+chisq.test(contingece)
+```
+
+Dado que el p-valor es inferior a 0.05, se rechaza la hipótesis nula, y aceptamos la hipótesis alternativa.
+
+Es decir, el test determina que la edad de los pasajeros es determinante a la hora de predecir si sobrevivió o no.
+
+#### Dependencia entre Sex y Survived
+
+A continuación, se comprobará si el sexo de los pasajeros influyó en si sobrevivieron al accidente o no. Por tanto, se identifican las siguientes hipótesis:
+
+* Hipótesis nula: El factor Sex y el el factor Survived son independientes.
+* Hipótesis alternativa: Los dos factores son dependientes.
+
+Para comprobar la dependencia entre dos variables categóricas, se aplica el test chi-cuadrado. Primero, se genera una tabla de contingencia entre ambos factores. Se utilizará los grupos de edad.
+
+
+```{r}
+contingece <- table(titanicData$Survived, titanicData$Sex)
+contingece
+```
+
+Una vez creada la tabla, se aplica el test.
+
+```{r}
+chisq.test(contingece)
+```
+
+Dado que el p-valor es inferior a 0.05, se rechaza la hipótesis nula, y aceptamos la hipótesis alternativa.
+
+Es decir, el test determina que el sexo de los pasajeros es determinante a la hora de predecir si sobrevivió o no.
 
 ### Regresión logística:
 
